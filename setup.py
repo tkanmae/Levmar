@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from setuptools import setup
-from distutils.extension import Extension
+from setuptools.extension import Extension
 import numpy as np
 from numpy.distutils.system_info import get_info
-
 
 levmar_sources = [
     'levmar/_levmar.c',
@@ -17,6 +16,8 @@ levmar_sources = [
     'levmar-2.6/lmbleic.c'
 ]
 
+lapack_opt = get_info('lapack_opt')
+lapack_inc = lapack_opt.pop('include_dirs', None)
 
 setup(
     name='levmar',
@@ -39,9 +40,10 @@ setup(
         Extension(
             'levmar._levmar',
             sources=levmar_sources,
-            include_dirs=['levmar-2.6', np.get_include()],
-            **get_info('lapack_opt')
+            include_dirs=['levmar-2.6', np.get_include()] + lapack_inc,
+            **lapack_opt
         ),
     ],
+    zip_safe=False,
     test_suite='nose.collector',
 )
