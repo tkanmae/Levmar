@@ -6,7 +6,6 @@ import numpy as np
 from numpy.distutils.system_info import get_info
 
 levmar_sources = [
-    'levmar/_levmar.c',
     'levmar-2.6/lm.c',
     'levmar-2.6/Axb.c',
     'levmar-2.6/misc.c',
@@ -18,6 +17,18 @@ levmar_sources = [
 
 lapack_opt = get_info('lapack_opt')
 lapack_inc = lapack_opt.pop('include_dirs', None)
+
+try:
+    from Cython.Distutils import build_ext
+
+    # we have cython, cythonize source
+    levmar_sources.append('levmar/_levmar.pyx')
+    cmdclass = {'build_ext': build_ext}
+
+except ImportError:
+    # no cython, assume they can obtain _levmar.c somehow
+    levmar_sources.append('levmar/_levmar.c')
+    cmdclass = {}
 
 setup(
     name='levmar',
@@ -39,6 +50,7 @@ setup(
     ext_modules=[
         Extension(
             'levmar._levmar',
+            cmdclass=cmdclass,
             sources=levmar_sources,
             include_dirs=['levmar-2.6', np.get_include()] + lapack_inc,
             **lapack_opt
