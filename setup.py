@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from setuptools import setup
-from distutils.extension import Extension
+from setuptools.extension import Extension
 import numpy as np
 from numpy.distutils.system_info import get_info
 
-
 levmar_sources = [
-    'levmar/_levmar.c',
     'levmar-2.6/lm.c',
     'levmar-2.6/Axb.c',
     'levmar-2.6/misc.c',
@@ -17,6 +15,24 @@ levmar_sources = [
     'levmar-2.6/lmbleic.c'
 ]
 
+lapack_opt = get_info('lapack_opt')
+lapack_inc = lapack_opt.pop('include_dirs', None)
+include_dirs = ['levmar-2.6', np.get_include()]
+
+if lapack_inc:
+    include_dirs += lapack_inc
+
+try:
+    from Cython.Distutils import build_ext
+
+    # we have cython, cythonize source
+    levmar_sources.append('levmar/_levmar.pyx')
+    cmdclass = {'build_ext': build_ext}
+
+except ImportError:
+    # no cython, assume they can obtain _levmar.c somehow
+    levmar_sources.append('levmar/_levmar.c')
+    cmdclass = {}
 
 setup(
     name='levmar',
@@ -38,10 +54,12 @@ setup(
     ext_modules=[
         Extension(
             'levmar._levmar',
+            cmdclass=cmdclass,
             sources=levmar_sources,
-            include_dirs=['levmar-2.6', np.get_include()],
-            **get_info('lapack_opt')
+            include_dirs=include_dirs,
+            **lapack_opt
         ),
     ],
+    zip_safe=False,
     test_suite='nose.collector',
 )

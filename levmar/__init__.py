@@ -3,7 +3,7 @@
 from __future__ import division
 
 from numpy.testing import Tester as __Tester
-import _levmar
+from . import _levmar
 
 
 __version__ = '0.2.0'

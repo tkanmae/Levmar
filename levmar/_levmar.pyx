@@ -179,7 +179,7 @@ cdef object return_result(p, pcov, double *c_info):
 
     if int(c_info[6]) in _LM_STOP_REASONS_WARNED:
         # Issue warning for unsuccessful termination.
-        warnings.warn(_LM_STOP_REASONS[info[6]], UserWarning)
+        warnings.warn(info[3], UserWarning) 
     return p, pcov, info
 
 
