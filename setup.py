@@ -17,6 +17,10 @@ levmar_sources = [
 
 lapack_opt = get_info('lapack_opt')
 lapack_inc = lapack_opt.pop('include_dirs', None)
+include_dirs = ['levmar-2.6', np.get_include()]
+
+if lapack_inc:
+    include_dirs += lapack_inc
 
 try:
     from Cython.Distutils import build_ext
@@ -52,7 +56,7 @@ setup(
             'levmar._levmar',
             cmdclass=cmdclass,
             sources=levmar_sources,
-            include_dirs=['levmar-2.6', np.get_include()] + lapack_inc,
+            include_dirs=include_dirs,
             **lapack_opt
         ),
     ],
