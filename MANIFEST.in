@@ -2,6 +2,8 @@ include AUTHORS
 include README.rst
 include LICENSE.txt
 
-recursive-include levmar/levmar-2.6 *.c *.h
+include levmar/levmar-2.6/*.c
+include levmar/levmar-2.6/*.h
+prune levmar/levmar-2.6/matlab
 
 global-exclude .DS_Store

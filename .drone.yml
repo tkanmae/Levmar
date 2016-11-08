@@ -1,8 +1,9 @@
 build:
-  image: bjodah/bjodahimg16:v1.2
+  image: bjodah/bjodahimg16dev:latest
   commands:
     - ./scripts/ci.sh levmar
     - ./scripts/prepare_deploy.sh
+    - PATH=/opt/miniconda3/bin:$PATH conda build conda-recipe
 
 deploy:
 
