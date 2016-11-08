@@ -39,7 +39,7 @@ about:
   home: https://github.com/bjodah/{{ name }}
   license: BSD 2-Clause
   license_file: LICENSE.txt
-  summary: 'Python wrapper around cvodes (from the sundials library)'
+  summary: 'Python binding to the levmar library using Cython'
   doc_url: https://bjodah.github.io/{{ name }}/latest
 
 
