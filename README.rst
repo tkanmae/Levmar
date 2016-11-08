@@ -1,4 +1,3 @@
-======
 levmar
 ======
 
@@ -6,23 +5,24 @@ A Python binding to the levmar library.
 
 
 Description
-===========
+-----------
 
-The levmar is GPL'ed ANSI C implementation of the Levenberg-Marquardt
-(LM) optimization algorithm.  The LM algorithm provides a numerical
-solution to the problem of minimizing a function over a parameter space
+The levmar is GPL'ed ANSI C implementation of the `Levenberg-Marquardt
+(LM) optimization algorithm <https://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm>`_.
+The LM algorithm provides a numerical solution to the problem of minimizing
+a function over a parameter space
 of a function.  The levmar library provides implementation of both
 unconstrained and constrained LM algorithms (box, linear equation, and
 linear inequality constraints).
 
 
 Installation
-============
+------------
 
 Building Levmar requires the following software installed:
 
-* Python (>=2.6)
-* NumPy (>=1.3)
+* Python (>=2.7)
+* NumPy (>=1.7)
 * [optional] nose (>=0.11)
 
 nose is required to execute tests.
@@ -57,7 +57,7 @@ in-place::
 
 
 Documentation
-=============
+-------------
 
 See docstrings and demo scripts contained in the directory
 ``./examples``.  Documentation of the levmar library can be found at
@@ -65,14 +65,12 @@ http://www.ics.forth.gr/~lourakis/levmar/.
 
 
 Authors
-=======
-
-Takeshi Kanmae <tkanmae@gmail.com>
+-------
+See file `AUTHORS <AUTHORS>`_.
 
 
 License
-=======
-
+-------
 The MIT license applies to all the files except those in
 ``./levmar-2.6``.  All of the software in ``./levmar-2.6`` and only the
 software therein is copyrighted by Manolis Lourakis and is licensed
@@ -81,7 +79,7 @@ See the file LICENSE.txt.
 
 
 Resources
-=========
+---------
 
 * levmar: http://www.ics.forth.gr/~lourakis/levmar/
 * Python: http://www.python.org/
