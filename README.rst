@@ -77,7 +77,11 @@ Documentation
 
 See docstrings and demo scripts contained in the directory
 ``./examples``.  Documentation of the levmar library can be found at
-http://www.ics.forth.gr/~lourakis/levmar/.
+http://www.ics.forth.gr/~lourakis/levmar/. Auto-generated API documentation
+for the latest stable release of this wrapper is found here:
+`<https://bjodah.github.io/chempy/latest>`_
+(and the development version for the current master branch of this wrapper
+is found here: `<http://hera.physchem.kth.se/~chempy/branches/master/html>`_).
 
 
 Authors
@@ -92,7 +96,7 @@ The MIT license applies to all the files except those in
 ``./levmar-2.6``.  All of the software in ``./levmar-2.6`` and only the
 software therein is copyrighted by Manolis Lourakis and is licensed
 under the terms and conditions of the GNU General Public License (GPL).
-See the file LICENSE.txt.
+See the file `LICENSE.txt <LICENSE.txt>`_.
 
 
 Resources
