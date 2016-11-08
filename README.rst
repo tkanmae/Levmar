@@ -34,42 +34,18 @@ linear inequality constraints).
 
 Installation
 ------------
+Simplest way to install levmar and its dependencies is to use the
+`conda pacakge manager <https://conda.pydata.org/docs/>`_::
 
-Building Levmar requires the following software installed:
+   $ conda install -c bjodah levmar pytest
+   $ python -m pytest --pyargs levmar  # runs the test-suite
 
-* Python (>=2.7)
-* NumPy (>=1.7)
-* [optional] nose (>=0.11)
+alternatively you may also use `pip`::
 
-nose is required to execute tests.
+   $ python -m pip install --user --upgrade pytest levmar
+   $ python -m pytest --pyargs levmar
 
-In order to build levmar, simply do::
-
-    $ python setup.py build
-    $ python setup.py install
-
-Then, verify a successful installation::
-
-    $ python -c "import levmar; levmar.test()"
-
-
-If you downloaded Levmar from a GitHub repository, you need to have
-Cython (>=0.13) installed.
-
-::
-
-    $ cython -v levmar/_levmar.pyx
-    $ python setup.py build
-    $ python setup.py install
-    $ python -c "import levmar; levmar.test()"
-
-If you just want to try Levmar without installing it, build it
-in-place::
-
-    $ (cython -v levmar/_levmar.pyx)
-    $ python setup.py build_ext --inplace -f
-    [Set up PYTHONPATH appropriately]
-    $ python -c "import levmar; levmar.test()"
+you can skip the ``--user`` flag if you have got root permissions.
 
 
 Documentation
