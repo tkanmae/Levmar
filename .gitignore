@@ -16,4 +16,6 @@
 
 build/
 dist/
+doc/
 MANIFEST
+.cache

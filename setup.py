@@ -1,65 +1,137 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+import io
+import os
+import pprint
+import shutil
+import sys
+import warnings
+
 from setuptools import setup
 from setuptools.extension import Extension
-import numpy as np
-from numpy.distutils.system_info import get_info
+
+pkg_name = 'levmar'
+url = 'https://github.com/bjodah/' + pkg_name
+license = 'GNU General Public Licence v2'  # Takeshi Kanmae's wrapper code has the MIT license
 
 levmar_sources = [
-    'levmar-2.6/lm.c',
-    'levmar-2.6/Axb.c',
-    'levmar-2.6/misc.c',
-    'levmar-2.6/lmlec.c',
-    'levmar-2.6/lmbc.c',
-    'levmar-2.6/lmblec.c',
-    'levmar-2.6/lmbleic.c'
+    'levmar/levmar-2.6/lm.c',
+    'levmar/levmar-2.6/Axb.c',
+    'levmar/levmar-2.6/misc.c',
+    'levmar/levmar-2.6/lmlec.c',
+    'levmar/levmar-2.6/lmbc.c',
+    'levmar/levmar-2.6/lmblec.c',
+    'levmar/levmar-2.6/lmbleic.c'
 ]
 
-lapack_opt = get_info('lapack_opt')
-lapack_inc = lapack_opt.pop('include_dirs', None)
-include_dirs = ['levmar-2.6', np.get_include()]
 
-if lapack_inc:
-    include_dirs += lapack_inc
+def _path_under_setup(*args):
+    return os.path.join(os.path.dirname(__file__), *args)
 
-try:
-    from Cython.Distutils import build_ext
+release_py_path = _path_under_setup(pkg_name, '_release.py')
+config_py_path = _path_under_setup(pkg_name, '_config.py')
+env = None  # silence pyflakes, 'env' is actually set on the next line
+exec(open(config_py_path).read())
+for k, v in list(env.items()):
+    env[k] = os.environ.get('%s_%s' % (pkg_name.upper(), k), v)
 
-    # we have cython, cythonize source
-    levmar_sources.append('levmar/_levmar.pyx')
-    cmdclass = {'build_ext': build_ext}
 
-except ImportError:
-    # no cython, assume they can obtain _levmar.c somehow
-    levmar_sources.append('levmar/_levmar.c')
-    cmdclass = {}
+USE_CYTHON = os.path.exists(_path_under_setup(pkg_name, '_levmar.pyx'))
+# Cythonize .pyx file if it exists (not in source distribution)
+ext_modules = []
 
-setup(
-    name='levmar',
-    version='0.2.0',
-    license='GNU General Public Licence v2',
-    maintainer='Takeshi Kanmae',
-    maintainer_email='tkanmae@gmail.com',
-    classifiers=[
-        'Intentended Audience :: Science/Research',
-        'Topic :: Scientific/Engineering',
-        'Programing Language :: Python',
-        'Licence :: OSI Approved :: MIT License',
-    ],
-    install_requires=open('requirements.txt').read().splitlines(),
-    packages=[
-        'levmar',
-        'levmar.tests',
-    ],
-    ext_modules=[
-        Extension(
-            'levmar._levmar',
-            cmdclass=cmdclass,
-            sources=levmar_sources,
-            include_dirs=include_dirs,
-            **lapack_opt
-        ),
-    ],
+if len(sys.argv) > 1 and '--help' not in sys.argv[1:] and sys.argv[1] not in (
+        '--help-commands', 'egg_info', 'clean', '--version'):
+    import numpy as np
+    ext = '.pyx' if USE_CYTHON else '.c'
+    ext_modules = [Extension('%s._levmar' % pkg_name,
+                             [os.path.join('levmar', '_levmar' + ext)] + levmar_sources)]
+    if USE_CYTHON:
+        from Cython.Build import cythonize
+        ext_modules = cythonize(ext_modules)
+    ext_modules[0].include_dirs = ['levmar/levmar-2.6', np.get_include()]
+    if env['LAPACK']:
+        ext_modules[0].libraries += [env['LAPACK']]
+    if env['BLAS']:
+        ext_modules[0].libraries += [env['BLAS']]
+
+_version_env_var = '%s_RELEASE_VERSION' % pkg_name.upper()
+RELEASE_VERSION = os.environ.get(_version_env_var, '')
+
+# http://conda.pydata.org/docs/build.html#environment-variables-set-during-the-build-process
+if os.environ.get('CONDA_BUILD', '0') == '1':
+    try:
+        RELEASE_VERSION = 'v' + open(
+            '__conda_version__.txt', 'rt').readline().rstrip()
+    except IOError:
+        pass
+
+
+if len(RELEASE_VERSION) > 1:
+    if RELEASE_VERSION[0] != 'v':
+        raise ValueError("$%s does not start with 'v'" % _version_env_var)
+    TAGGED_RELEASE = True
+    __version__ = RELEASE_VERSION[1:]
+else:  # set `__version__` from _release.py:
+    TAGGED_RELEASE = False
+    exec(open(release_py_path).read())
+
+classifiers = [
+    'Intentended Audience :: Science/Research',
+    'Topic :: Scientific/Engineering',
+    'Topic :: Scientific/Engineering :: Mathematics',
+    'Programing Language :: Python',
+    'Licence :: OSI Approved :: MIT License',
+]
+
+tests = [
+    '%s.tests' % pkg_name,
+]
+
+with io.open(_path_under_setup(pkg_name, '__init__.py'), 'rt', encoding='utf-8') as f:
+    short_description = f.read().split('"""')[1].split('\n')[1]
+if not 10 < len(short_description) < 255:
+    warnings.warn("Short description from __init__.py proably not read correctly")
+long_descr = io.open(_path_under_setup('README.rst'), encoding='utf-8').read()
+if not len(long_descr) > 100:
+    warnings.warn("Long description from README.rst probably not read correctly.")
+_author, _author_email = open(_path_under_setup('AUTHORS'), 'rt').readline().split('<')
+_author_email = _author_email.split('>')[0].strip() if '@' in _author_email else None
+
+setup_kwargs = dict(
+    name=pkg_name,
+    version=__version__,
+    description=short_description,
+    long_description=long_descr,
+    classifiers=classifiers,
+    author=_author.strip(),
+    author_email=_author_email,
+    maintainer='Björn Dahlgren',
+    maintainer_email='bjodah@gmail.com',
+    url=url,
+    license=license,
+    packages=[pkg_name] + tests,
+    install_requires=['numpy'] + (['cython'] if USE_CYTHON else []),
+    setup_requires=['numpy'] + (['cython'] if USE_CYTHON else []),
+    extras_require={'docs': ['Sphinx', 'sphinx_rtd_theme', 'numpydoc']},
+    ext_modules=ext_modules,
     zip_safe=False,
-    test_suite='nose.collector',
 )
+
+if __name__ == '__main__':
+    try:
+        if TAGGED_RELEASE:
+            # Same commit should generate different sdist
+            # depending on tagged version (set PYGSLODEIV2_RELEASE_VERSION)
+            # this will ensure source distributions contain the correct version
+            shutil.move(release_py_path, release_py_path+'__temp__')
+            open(release_py_path, 'wt').write(
+                "__version__ = '{}'\n".format(__version__))
+        shutil.move(config_py_path, config_py_path+'__temp__')
+        open(config_py_path, 'wt').write("env = {}\n".format(pprint.pformat(env)))
+        setup(**setup_kwargs)
+    finally:
+        if TAGGED_RELEASE:
+            shutil.move(release_py_path+'__temp__', release_py_path)
+        shutil.move(config_py_path+'__temp__', config_py_path)
