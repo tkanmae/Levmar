@@ -1,4 +1,4 @@
 env = {
-    'LAPACK': 'lapack'
+    'LAPACK': 'lapack',
     'BLAS': 'blas'
 }

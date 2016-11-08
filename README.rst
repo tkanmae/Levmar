@@ -1,7 +1,23 @@
 levmar
 ======
+.. image:: http://hera.physchem.kth.se:9090/api/badges/bjodah/levmar/status.svg
+   :target: http://hera.physchem.kth.se:9090/bjodah/levmar
+   :alt: Build status
+.. image:: https://img.shields.io/pypi/v/levmar.svg
+   :target: https://pypi.python.org/pypi/levmar
+   :alt: PyPI version
+.. image:: https://img.shields.io/badge/python-2.7,3.4,3.5-blue.svg
+   :target: https://www.python.org/
+   :alt: Python version
+.. image:: https://img.shields.io/pypi/l/levmar.svg
+   :target: https://github.com/bjodah/levmar/blob/master/LICENSE.txt
+   :alt: License
+.. image:: http://hera.physchem.kth.se/~levmar/branches/master/htmlcov/coverage.svg
+   :target: http://hera.physchem.kth.se/~levmar/branches/master/htmlcov
+   :alt: coverage
 
-A Python binding to the levmar library.
+A Python binding to the levmar library. Note that this is a fork of
+https://github.com/tkanmae/levmar.
 
 
 Description
@@ -66,7 +82,8 @@ http://www.ics.forth.gr/~lourakis/levmar/.
 
 Authors
 -------
-See file `AUTHORS <AUTHORS>`_.
+Takeshi Kanmae <tkanmae@gmail.com>.
+For all authors see `AUTHORS <AUTHORS>`_.
 
 
 License
@@ -86,6 +103,3 @@ Resources
 * NumPy: http://www.scipy.org/
 * nose: http://somethingaboutorange.com/mrl/projects/nose
 * Cython: http://www.cython.org/
-
-
-.. # vim: ft=rst tw=72
