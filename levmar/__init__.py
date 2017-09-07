@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import division
+"""
+Python binding to the levmar library using Cython.
+"""
+from __future__ import (absolute_import, division, print_function)
+
 
 from numpy.testing import Tester as __Tester
-import _levmar
+from . import _levmar
 
 
-__version__ = '0.2.0'
+from ._release import __version__
 
 
 # Add test function to the package.
