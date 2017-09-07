@@ -1,5 +1,5 @@
 build:
-  image: bjodah/bjodahimg16dev:latest
+  image: bjodah/bjodahimg16dev:v1.3
   commands:
     - ./scripts/ci.sh levmar
     - ./scripts/generate_docs.sh

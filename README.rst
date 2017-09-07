@@ -55,9 +55,9 @@ See docstrings and demo scripts contained in the directory
 ``./examples``.  Documentation of the levmar library can be found at
 http://www.ics.forth.gr/~lourakis/levmar/. Auto-generated API documentation
 for the latest stable release of this wrapper is found here:
-`<https://bjodah.github.io/chempy/latest>`_
+`<https://bjodah.github.io/levmar/latest>`_
 (and the development version for the current master branch of this wrapper
-is found here: `<http://hera.physchem.kth.se/~chempy/branches/master/html>`_).
+is found here: `<http://hera.physchem.kth.se/~levmar/branches/master/html>`_).
 
 
 Authors
