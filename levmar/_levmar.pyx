@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 
+from cpython.object cimport PyObject
 cimport cython
-from numpy cimport *
-
-import numpy as np
-import warnings
-
+cimport numpy as cnp
+from _levmar cimport *
 
 cdef extern from "stdlib.h":
     void *memcpy(void *dest, void *src, size_t n)
@@ -28,7 +26,12 @@ cdef extern from "numpy/npy_math.h":
     double NPY_INFINITY
 
 
-import_array()
+cnp.import_array()
+
+
+import numpy as np
+import warnings
+
 
 
 _LM_STOP_REASONS = {
@@ -75,15 +78,15 @@ cdef class _LMFunc:
         self.jacf = jacf
 
     cdef void eval_func(self, double *p, double *y, int m, int n):
-        cdef npy_intp m_ = m
-        cdef ndarray p_ = PyArray_SimpleNewFromData(1, &m_, NPY_DOUBLE, <void*>p)
-        cdef ndarray y_ = PyObject_CallObject(self.func, PySequence_Concat((p_,), self.args))
+        cdef cnp.npy_intp m_ = m
+        cdef cnp.ndarray p_ = cnp.PyArray_SimpleNewFromData(1, &m_, cnp.NPY_DOUBLE, <void*>p)
+        cdef cnp.ndarray y_ = PyObject_CallObject(self.func, PySequence_Concat((p_,), self.args))
         memcpy(y, y_.data, n * sizeof(double))
 
     cdef void eval_jacf(self, double *p, double *j, int m, int n):
-        cdef npy_intp m_ = m
-        cdef ndarray p_ = PyArray_SimpleNewFromData(1, &m_, NPY_DOUBLE, <void*>p)
-        cdef ndarray y_ = PyObject_CallObject(self.jacf, PySequence_Concat((p_,), self.args))
+        cdef cnp.npy_intp m_ = m
+        cdef cnp.ndarray p_ = cnp.PyArray_SimpleNewFromData(1, &m_, cnp.NPY_DOUBLE, <void*>p)
+        cdef cnp.ndarray y_ = PyObject_CallObject(self.jacf, PySequence_Concat((p_,), self.args))
         memcpy(j, y_.data, m * n * sizeof(double))
 
 
@@ -179,7 +182,7 @@ cdef object return_result(p, pcov, double *c_info):
 
     if int(c_info[6]) in _LM_STOP_REASONS_WARNED:
         # Issue warning for unsuccessful termination.
-        warnings.warn(_LM_STOP_REASONS[info[6]], UserWarning)
+        warnings.warn(info[3], UserWarning)
     return p, pcov, info
 
 
@@ -187,20 +190,21 @@ def levmar(func, p, x, args, jacf,
            double mu, double eps1, double eps2, double eps3,
            int maxit, bint cdiff):
     cdef:
-        ndarray p_, x_, pcov
+        cnp.ndarray p_, x_, pcov
         int m, n, niter
-        double c_opts[LM_OPTS_SZ], c_info[LM_INFO_SZ]
+        double c_opts[LM_OPTS_SZ]
+        double c_info[LM_INFO_SZ]
         _LMFunc lm_func
 
-    p_ = PyArray_FROMANY(p, NPY_DOUBLE, 1, 1, NPY_ENSURECOPY)
-    x_ = PyArray_ContiguousFromAny(x, NPY_DOUBLE, 1, 1)
+    p_ = cnp.PyArray_FROMANY(p, cnp.NPY_DOUBLE, 1, 1, cnp.NPY_ENSURECOPY)
+    x_ = cnp.PyArray_ContiguousFromAny(x, cnp.NPY_DOUBLE, 1, 1)
     if p_.ndim != 1:
         raise ValueError('p must be a 1d array-like')
     if x_.ndim != 1:
         raise ValueError('x must be a 1d array-like')
     m = p_.shape[0]
     n = x_.shape[0]
-    pcov = PyArray_ZEROS(2, [m, m], NPY_DOUBLE, 0)
+    pcov = cnp.PyArray_ZEROS(2, [m, m], cnp.NPY_DOUBLE, 0)
 
     set_opts(mu, eps1, eps2, eps3, cdiff, c_opts)
     if maxit <= 0:
@@ -250,20 +254,21 @@ def levmar_bc(func, p, x, bc, args, jacf,
               double mu, double eps1, double eps2, double eps3,
               int maxit, bint cdiff):
     cdef:
-        ndarray p_, x_, lb, ub, pcov
+        cnp.ndarray p_, x_, lb, ub, pcov
         int m, n, niter
-        double c_opts[LM_OPTS_SZ], c_info[LM_INFO_SZ]
+        double c_opts[LM_OPTS_SZ]
+        double c_info[LM_INFO_SZ]
         _LMFunc lm_func
 
-    p_ = PyArray_FROMANY(p, NPY_DOUBLE, 1, 1, NPY_ENSURECOPY)
-    x_ = PyArray_ContiguousFromAny(x, NPY_DOUBLE, 1, 1)
+    p_ = cnp.PyArray_FROMANY(p, cnp.NPY_DOUBLE, 1, 1, cnp.NPY_ENSURECOPY)
+    x_ = cnp.PyArray_ContiguousFromAny(x, cnp.NPY_DOUBLE, 1, 1)
     if p_.ndim != 1:
         raise ValueError('p must be a 1d array-like')
     if x_.ndim != 1:
         raise ValueError('x must be a 1d array-like')
     m = p_.shape[0]
     n = x_.shape[0]
-    pcov = PyArray_ZEROS(2, [m, m], NPY_DOUBLE, 0)
+    pcov = cnp.PyArray_ZEROS(2, [m, m], cnp.NPY_DOUBLE, 0)
 
     lb, ub = prepare_bc(bc, m)
 
@@ -317,20 +322,21 @@ def levmar_lec(func, p, x, lec, args, jacf,
                double mu, double eps1, double eps2, double eps3,
                int maxit, bint cdiff):
     cdef:
-        ndarray p_, x_, A, b, pcov
+        cnp.ndarray p_, x_, A, b, pcov
         int m, n, niter
-        double c_opts[LM_OPTS_SZ], c_info[LM_INFO_SZ]
+        double c_opts[LM_OPTS_SZ]
+        double c_info[LM_INFO_SZ]
         _LMFunc lm_func
 
-    p_ = PyArray_FROMANY(p, NPY_DOUBLE, 1, 1, NPY_ENSURECOPY)
-    x_ = PyArray_ContiguousFromAny(x, NPY_DOUBLE, 1, 1)
+    p_ = cnp.PyArray_FROMANY(p, cnp.NPY_DOUBLE, 1, 1, cnp.NPY_ENSURECOPY)
+    x_ = cnp.PyArray_ContiguousFromAny(x, cnp.NPY_DOUBLE, 1, 1)
     if p_.ndim != 1:
         raise ValueError('p must be a 1d array-like')
     if x_.ndim != 1:
         raise ValueError('x must be a 1d array-like')
     m = p_.shape[0]
     n = x_.shape[0]
-    pcov = PyArray_ZEROS(2, [m, m], NPY_DOUBLE, 0)
+    pcov = cnp.PyArray_ZEROS(2, [m, m], cnp.NPY_DOUBLE, 0)
 
     A, b = prepare_lc(lec, m)
 
@@ -384,20 +390,21 @@ def levmar_blec(func, p, x, bc, lec, args, jacf,
                 double mu, double eps1, double eps2, double eps3,
                 int maxit, bint cdiff):
     cdef:
-        ndarray p_, x_, lb, ub, A, b, pcov
+        cnp.ndarray p_, x_, lb, ub, A, b, pcov
         int m, n, niter
-        double c_opts[LM_OPTS_SZ], c_info[LM_INFO_SZ]
+        double c_opts[LM_OPTS_SZ]
+        double c_info[LM_INFO_SZ]
         _LMFunc lm_func
 
-    p_ = PyArray_FROMANY(p, NPY_DOUBLE, 1, 1, NPY_ENSURECOPY)
-    x_ = PyArray_ContiguousFromAny(x, NPY_DOUBLE, 1, 1)
+    p_ = cnp.PyArray_FROMANY(p, cnp.NPY_DOUBLE, 1, 1, cnp.NPY_ENSURECOPY)
+    x_ = cnp.PyArray_ContiguousFromAny(x, cnp.NPY_DOUBLE, 1, 1)
     if p_.ndim != 1:
         raise ValueError('p must be a 1d array-like')
     if x_.ndim != 1:
         raise ValueError('x must be a 1d array-like')
     m = p_.shape[0]
     n = x_.shape[0]
-    pcov = PyArray_ZEROS(2, [m, m], NPY_DOUBLE, 0)
+    pcov = cnp.PyArray_ZEROS(2, [m, m], cnp.NPY_DOUBLE, 0)
 
     lb, ub = prepare_bc(bc, m)
     A, b = prepare_lc(lec, m)
@@ -454,20 +461,21 @@ def levmar_bleic(func, p, x, bc, lec, lic, args, jacf,
                  double mu, double eps1, double eps2, double eps3,
                  int maxit, bint cdiff):
     cdef:
-        ndarray p_, x_, lb, ub, A, b, C, d, pcov
+        cnp.ndarray p_, x_, lb, ub, A, b, C, d, pcov
         int m, n, niter
-        double c_opts[LM_OPTS_SZ], c_info[LM_INFO_SZ]
+        double c_opts[LM_OPTS_SZ]
+        double c_info[LM_INFO_SZ]
         _LMFunc lm_func
 
-    p_ = PyArray_FROMANY(p, NPY_DOUBLE, 1, 1, NPY_ENSURECOPY)
-    x_ = PyArray_ContiguousFromAny(x, NPY_DOUBLE, 1, 1)
+    p_ = cnp.PyArray_FROMANY(p, cnp.NPY_DOUBLE, 1, 1, cnp.NPY_ENSURECOPY)
+    x_ = cnp.PyArray_ContiguousFromAny(x, cnp.NPY_DOUBLE, 1, 1)
     if p_.ndim != 1:
         raise ValueError('p must be a 1d array-like')
     if x_.ndim != 1:
         raise ValueError('x must be a 1d array-like')
     m = p_.shape[0]
     n = x_.shape[0]
-    pcov = PyArray_ZEROS(2, [m, m], NPY_DOUBLE, 0)
+    pcov = cnp.PyArray_ZEROS(2, [m, m], cnp.NPY_DOUBLE, 0)
 
     lb, ub = prepare_bc(bc, m)
     A, b = prepare_lc(lec, m)
@@ -527,20 +535,21 @@ def levmar_blic(func, p, x, bc, lic, args, jacf,
                double mu, double eps1, double eps2, double eps3,
                int maxit, bint cdiff):
     cdef:
-        ndarray p_, x_, lb, ub, C, d, pcov
+        cnp.ndarray p_, x_, lb, ub, C, d, pcov
         int m, n, niter
-        double c_opts[LM_OPTS_SZ], c_info[LM_INFO_SZ]
+        double c_opts[LM_OPTS_SZ]
+        double c_info[LM_INFO_SZ]
         _LMFunc lm_func
 
-    p_ = PyArray_FROMANY(p, NPY_DOUBLE, 1, 1, NPY_ENSURECOPY)
-    x_ = PyArray_ContiguousFromAny(x, NPY_DOUBLE, 1, 1)
+    p_ = cnp.PyArray_FROMANY(p, cnp.NPY_DOUBLE, 1, 1, cnp.NPY_ENSURECOPY)
+    x_ = cnp.PyArray_ContiguousFromAny(x, cnp.NPY_DOUBLE, 1, 1)
     if p_.ndim != 1:
         raise ValueError('p must be a 1d array-like')
     if x_.ndim != 1:
         raise ValueError('x must be a 1d array-like')
     m = p_.shape[0]
     n = x_.shape[0]
-    pcov = PyArray_ZEROS(2, [m, m], NPY_DOUBLE, 0)
+    pcov = cnp.PyArray_ZEROS(2, [m, m], cnp.NPY_DOUBLE, 0)
 
     lb, ub = prepare_bc(bc, m)
     C, d = prepare_lc(lic, m)
@@ -597,20 +606,21 @@ def levmar_leic(func, p, x, lec, lic, args, jacf,
                 double mu, double eps1, double eps2, double eps3,
                 int maxit, bint cdiff):
     cdef:
-        ndarray p_, x_, A, b, C, d, pcov
+        cnp.ndarray p_, x_, A, b, C, d, pcov
         int m, n, niter
-        double c_opts[LM_OPTS_SZ], c_info[LM_INFO_SZ]
+        double c_opts[LM_OPTS_SZ]
+        double c_info[LM_INFO_SZ]
         _LMFunc lm_func
 
-    p_ = PyArray_FROMANY(p, NPY_DOUBLE, 1, 1, NPY_ENSURECOPY)
-    x_ = PyArray_ContiguousFromAny(x, NPY_DOUBLE, 1, 1)
+    p_ = cnp.PyArray_FROMANY(p, cnp.NPY_DOUBLE, 1, 1, cnp.NPY_ENSURECOPY)
+    x_ = cnp.PyArray_ContiguousFromAny(x, cnp.NPY_DOUBLE, 1, 1)
     if p_.ndim != 1:
         raise ValueError('p must be a 1d array-like')
     if x_.ndim != 1:
         raise ValueError('x must be a 1d array-like')
     m = p_.shape[0]
     n = x_.shape[0]
-    pcov = PyArray_ZEROS(2, [m, m], NPY_DOUBLE, 0)
+    pcov = cnp.PyArray_ZEROS(2, [m, m], cnp.NPY_DOUBLE, 0)
 
     A, b = prepare_lc(lec, m)
     C, d = prepare_lc(lic, m)
@@ -667,20 +677,21 @@ def levmar_lic(func, p, x, lic, args, jacf,
                double mu, double eps1, double eps2, double eps3,
                int maxit, bint cdiff):
     cdef:
-        ndarray p_, x_, C, d, pcov
+        cnp.ndarray p_, x_, C, d, pcov
         int m, n, niter
-        double c_opts[LM_OPTS_SZ], c_info[LM_INFO_SZ]
+        double c_opts[LM_OPTS_SZ]
+        double c_info[LM_INFO_SZ]
         _LMFunc lm_func
 
-    p_ = PyArray_FROMANY(p, NPY_DOUBLE, 1, 1, NPY_ENSURECOPY)
-    x_ = PyArray_ContiguousFromAny(x, NPY_DOUBLE, 1, 1)
+    p_ = cnp.PyArray_FROMANY(p, cnp.NPY_DOUBLE, 1, 1, cnp.NPY_ENSURECOPY)
+    x_ = cnp.PyArray_ContiguousFromAny(x, cnp.NPY_DOUBLE, 1, 1)
     if p_.ndim != 1:
         raise ValueError('p must be a 1d array-like')
     if x_.ndim != 1:
         raise ValueError('x must be a 1d array-like')
     m = p_.shape[0]
     n = x_.shape[0]
-    pcov = PyArray_ZEROS(2, [m, m], NPY_DOUBLE, 0)
+    pcov = cnp.PyArray_ZEROS(2, [m, m], cnp.NPY_DOUBLE, 0)
 
     C, d = prepare_lc(lic, m)
 

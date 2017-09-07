@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import division
+from __future__ import (absolute_import, division, print_function)
+
 
 from math import (atan, pi, sqrt)
 import numpy as np
 from numpy.testing import assert_array_almost_equal
-import levmar
+from .. import (
+    levmar, levmar_blec, levmar_bc, levmar_lec, levmar_lic,
+    levmar_bleic
+)
 
 
 OPTS = dict(eps1=1.0e-15, eps2=1.0e-15, eps3=1.0e-20)
@@ -31,11 +35,11 @@ def test_rosen():
     p0 = [-1.2, 1.0]
     pt = [ 1.0, 1.0]
 
-    p, pcov, info = levmar.levmar(func, p0, y, jacf=jacf, **OPTS)
+    p, pcov, info = levmar(func, p0, y, jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar(func, p0, y, **OPTS)
+    p, pcov, info = levmar(func, p0, y, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar(func, p0, y, cdiff=True, **OPTS)
+    p, pcov, info = levmar(func, p0, y, cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt)
 
 
@@ -64,11 +68,11 @@ def test_modros():
     p0 = [-1.2, 2.0]
     pt = [ 1.0, 1.0]
 
-    p, pcov, info = levmar.levmar(func, p0, y, jacf=jacf, **OPTS)
+    p, pcov, info = levmar(func, p0, y, jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar(func, p0, y, **OPTS)
+    p, pcov, info = levmar(func, p0, y, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar(func, p0, y, cdiff=True, **OPTS)
+    p, pcov, info = levmar(func, p0, y, cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt)
 
 
@@ -92,11 +96,11 @@ def test_powell():
     p0 = [3.0, 1.0]
     pt = [0.0, 0.0]
 
-    p, pcov, info = levmar.levmar(func, p0, y, jacf=jacf, **OPTS)
+    p, pcov, info = levmar(func, p0, y, jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt, decimal=4)
-    p, pcov, info = levmar.levmar(func, p0, y, **OPTS)
+    p, pcov, info = levmar(func, p0, y, **OPTS)
     assert_array_almost_equal(p, pt, decimal=4)
-    p, pcov, info = levmar.levmar(func, p0, y, cdiff=True, **OPTS)
+    p, pcov, info = levmar(func, p0, y, cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt, decimal=4)
 
 
@@ -117,9 +121,9 @@ def test_wood():
     p0 = [-3.0, -1.0, -3.0, -1.0]
     pt = [ 1.0,  1.0,  1.0,  1.0]
 
-    p, pcov, info = levmar.levmar(func, p0, y, **OPTS)
+    p, pcov, info = levmar(func, p0, y, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar(func, p0, y, cdiff=True, **OPTS)
+    p, pcov, info = levmar(func, p0, y, cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt)
 
 
@@ -133,9 +137,9 @@ def test_meyer():
         p0, p1, p2 = p
         j = np.empty((16, 3))
         tmp = np.exp(10.0 * p1 / (x + p2) - 13.0)
-        j[:,0] = tmp
-        j[:,1] = 10.0 * p0 * tmp / (x + p2)
-        j[:,2] = -10.0 * p0 * p1 * tmp / ((x + p2) * (x + p2))
+        j[:, 0] = tmp
+        j[:, 1] = 10.0 * p0 * tmp / (x + p2)
+        j[:, 2] = -10.0 * p0 * p1 * tmp / ((x + p2) * (x + p2))
         return j
 
     x = 0.45 + 0.05 * np.arange(16)
@@ -146,11 +150,11 @@ def test_meyer():
     p0 = [8.85, 4.00, 2.50]
     pt = [2.48, 6.18, 3.45]
 
-    p, pcov, info = levmar.levmar(func, p0, y, args=(x,), jacf=jacf, **OPTS)
+    p, pcov, info = levmar(func, p0, y, args=(x,), jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt, decimal=1)
-    p, pcov, info = levmar.levmar(func, p0, y, args=(x,), **OPTS)
+    p, pcov, info = levmar(func, p0, y, args=(x,), **OPTS)
     assert_array_almost_equal(p, pt, decimal=1)
-    p, pcov, info = levmar.levmar(func, p0, y, args=(x,), cdiff=True, **OPTS)
+    p, pcov, info = levmar(func, p0, y, args=(x,), cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt, decimal=1)
 
 
@@ -161,7 +165,7 @@ def test_osborne():
         return y
 
     def jacf(p, x):
-        j= np.empty((33, 5))
+        j = np.empty((33, 5))
         tmp1 = np.exp(-p[3] * x)
         tmp2 = np.exp(-p[4] * x)
         j[:, 0] = 1.0
@@ -182,11 +186,11 @@ def test_osborne():
     p0 = [0.5, 1.5, -1.0, 1.0e-2, 2.0e-2]
     pt = [0.3754, 1.9358, -1.4647, 0.0129, 0.0221]
 
-    p, pcov, info = levmar.levmar(func, p0, y, args=(x,), jacf=jacf, **OPTS)
+    p, pcov, info = levmar(func, p0, y, args=(x,), jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt, decimal=4)
-    p, pcov, info = levmar.levmar(func, p0, y, args=(x,), **OPTS)
+    p, pcov, info = levmar(func, p0, y, args=(x,), **OPTS)
     assert_array_almost_equal(p, pt, decimal=4)
-    p, pcov, info = levmar.levmar(func, p0, y, args=(x,), cdiff=True, **OPTS)
+    p, pcov, info = levmar(func, p0, y, args=(x,), cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt, decimal=4)
 
 
@@ -225,11 +229,11 @@ def test_helval():
     p0 = [-1.0, 2.0, 2.0]
     pt = [ 1.0, 0.0, 0.0]
 
-    p, pcov, info = levmar.levmar(func, p0, y, jacf=jacf, **OPTS)
+    p, pcov, info = levmar(func, p0, y, jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar(func, p0, y, **OPTS)
+    p, pcov, info = levmar(func, p0, y, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar(func, p0, y, cdiff=True, **OPTS)
+    p, pcov, info = levmar(func, p0, y, cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt)
 
 
@@ -265,11 +269,11 @@ def test_bt3():
                     [0.0, 1.0, 0.0, 0.0, -1.0]])
     b = np.asarray([0.0, 0.0, 0.0])
 
-    p, pcov, info = levmar.levmar_lec(func, p0, y, (A, b), jacf=jacf, **OPTS)
+    p, pcov, info = levmar_lec(func, p0, y, (A, b), jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt, decimal=4)
-    p, pcov, info = levmar.levmar_lec(func, p0, y, (A, b), **OPTS)
+    p, pcov, info = levmar_lec(func, p0, y, (A, b), **OPTS)
     assert_array_almost_equal(p, pt, decimal=4)
-    p, pcov, info = levmar.levmar_lec(func, p0, y, (A, b), cdiff=True, **OPTS)
+    p, pcov, info = levmar_lec(func, p0, y, (A, b), cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt, decimal=4)
 
 
@@ -297,11 +301,11 @@ def test_hs28():
     A = np.asarray([1.0, 2.0, 3.0])
     b = np.asarray([1.0])
 
-    p, pcov, info = levmar.levmar_lec(func, p0, y, (A, b), jacf=jacf, **OPTS)
+    p, pcov, info = levmar_lec(func, p0, y, (A, b), jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt, decimal=5)
-    p, pcov, info = levmar.levmar_lec(func, p0, y, (A, b), **OPTS)
+    p, pcov, info = levmar_lec(func, p0, y, (A, b), **OPTS)
     assert_array_almost_equal(p, pt, decimal=4)
-    p, pcov, info = levmar.levmar_lec(func, p0, y, (A, b), cdiff=True, **OPTS)
+    p, pcov, info = levmar_lec(func, p0, y, (A, b), cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt, decimal=3)
 
 
@@ -334,11 +338,11 @@ def test_hs48():
                     [0.0, 0.0, 1.0, -2.0, -2.0]])
     b = np.asarray([5.0, -3.0])
 
-    p, pcov, info = levmar.levmar_lec(func, p0, y, (A, b), jacf=jacf, **OPTS)
+    p, pcov, info = levmar_lec(func, p0, y, (A, b), jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt, decimal=5)
-    p, pcov, info = levmar.levmar_lec(func, p0, y, (A, b), **OPTS)
+    p, pcov, info = levmar_lec(func, p0, y, (A, b), **OPTS)
     assert_array_almost_equal(p, pt, decimal=5)
-    p, pcov, info = levmar.levmar_lec(func, p0, y, (A, b), cdiff=True, **OPTS)
+    p, pcov, info = levmar_lec(func, p0, y, (A, b), cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt, decimal=5)
 
 
@@ -354,16 +358,16 @@ def test_hs51():
         return y
 
     def jacf(p):
-        j = np.empty((5,5))
+        j = np.empty((5, 5))
         t1 = p[0] - p[1]
         t2 = p[1] + p[2] - 2.0
         t3 = p[3] - 1.0
         t4 = p[4] - 1.0
-        j[:,0] = 2.0*t1
-        j[:,1] = 2.0*(t2-t1)
-        j[:,2] = 2.0*t2
-        j[:,3] = 2.0*t3
-        j[:,4] = 2.0*t4
+        j[:, 0] = 2.0*t1
+        j[:, 1] = 2.0*(t2-t1)
+        j[:, 2] = 2.0*t2
+        j[:, 3] = 2.0*t3
+        j[:, 4] = 2.0*t4
         return j
 
     y = np.zeros(5, np.float64)
@@ -374,11 +378,11 @@ def test_hs51():
                      [0.0, 1.0, 0.0, 0.0, -1.0]])
     b = np.asarray([4.0, 0.0, 0.0])
 
-    p, pcov, info = levmar.levmar_lec(func, p0, y, (A, b), jacf=jacf, **OPTS)
+    p, pcov, info = levmar_lec(func, p0, y, (A, b), jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt, decimal=4)
-    p, pcov, info = levmar.levmar_lec(func, p0, y, (A, b), **OPTS)
+    p, pcov, info = levmar_lec(func, p0, y, (A, b), **OPTS)
     assert_array_almost_equal(p, pt, decimal=3)
-    p, pcov, info = levmar.levmar_lec(func, p0, y, (A, b), cdiff=True, **OPTS)
+    p, pcov, info = levmar_lec(func, p0, y, (A, b), cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt, decimal=3)
 
 
@@ -403,11 +407,11 @@ def test_hs01():
     pt = [ 1.0, 1.0]
     bc = [(None, None), (-1.5, None)]
 
-    p, pcov, info = levmar.levmar_bc(func, p0, y, bc, jacf=jacf, **OPTS)
+    p, pcov, info = levmar_bc(func, p0, y, bc, jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar_bc(func, p0, y, bc, **OPTS)
+    p, pcov, info = levmar_bc(func, p0, y, bc, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar_bc(func, p0, y, bc, cdiff=True, **OPTS)
+    p, pcov, info = levmar_bc(func, p0, y, bc, cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt)
 
 
@@ -432,11 +436,11 @@ def test_hs21():
     pt = [ 2.0,  0.0]
     bc = [(2.0, 50.0), (-50.0, 50.0)]
 
-    p, pcov, info = levmar.levmar_bc(func, p0, y, bc, jacf=jacf, **OPTS)
+    p, pcov, info = levmar_bc(func, p0, y, bc, jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar_bc(func, p0, y, bc, **OPTS)
+    p, pcov, info = levmar_bc(func, p0, y, bc, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar_bc(func, p0, y, bc, cdiff=True, **OPTS)
+    p, pcov, info = levmar_bc(func, p0, y, bc, cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt)
 
 
@@ -474,11 +478,11 @@ def test_hatfldb():
     pt = [0.947214, 0.8, 0.64, 0.4096]
     bc = [(0.0, None), (0.0, 0.8), (0.0, None), (0.0, None)]
 
-    p, pcov, info = levmar.levmar_bc(func, p0, y, bc, jacf=jacf, **OPTS)
+    p, pcov, info = levmar_bc(func, p0, y, bc, jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar_bc(func, p0, y, bc, **OPTS)
+    p, pcov, info = levmar_bc(func, p0, y, bc, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar_bc(func, p0, y, bc, cdiff=True, **OPTS)
+    p, pcov, info = levmar_bc(func, p0, y, bc, cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt)
 
 
@@ -517,11 +521,11 @@ def test_hatfldc():
     pt = [1.0, 1.0, 1.0, 1.0]
     bc = [(0.0, 10.0), (0.0, 10.0), (0.0, 10.0), (0.0, 10.0)]
 
-    p, pcov, info = levmar.levmar_bc(func, p0, y, bc, jacf=jacf, **OPTS)
+    p, pcov, info = levmar_bc(func, p0, y, bc, jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar_bc(func, p0, y, bc, **OPTS)
+    p, pcov, info = levmar_bc(func, p0, y, bc, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar_bc(func, p0, y, bc, cdiff=True, **OPTS)
+    p, pcov, info = levmar_bc(func, p0, y, bc, cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt)
 
 
@@ -585,7 +589,7 @@ def test_combust():
     pt = [0.0034, 31.3265, 0.0684, 0.8595, 0.0370]
     bc = [(0.001, 100), (0.001, 100), (0.001, 100), (0.001, 100), (0.001, 100)]
 
-    p, pcov, info = levmar.levmar_bc(func, p0, y, bc, jacf=jacf,
+    p, pcov, info = levmar_bc(func, p0, y, bc, jacf=jacf,
                                      maxit=5000, **OPTS)
     assert_array_almost_equal(p, pt, decimal=1)
 
@@ -633,12 +637,12 @@ def test_mod1hs52():
     b = np.asarray([0.0, 0.0, 0.0])
     bc = [(-0.09, None), (0.0, 0.3), (None, 0.25), (-0.2, 0.3), (0.0, 0.3)]
 
-    p, pcov, info = levmar.levmar_blec(func, p0, y, bc, (A, b), jacf=jacf,
+    p, pcov, info = levmar_blec(func, p0, y, bc, (A, b), jacf=jacf,
                                        **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar_blec(func, p0, y, bc, (A, b), **OPTS)
+    p, pcov, info = levmar_blec(func, p0, y, bc, (A, b), **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar_blec(func, p0, y, bc, (A, b),
+    p, pcov, info = levmar_blec(func, p0, y, bc, (A, b),
                                        cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt, decimal=3)
 
@@ -691,11 +695,11 @@ def test_mod2hs52():
                     [0.0, -1.0, 0.0, 0.0,  1.0]])
     d = np.asarray([-1.0, -2.0, -7.0])
 
-    p, pcov, info = levmar.levmar_lic(func, p0, y, (C, d), jacf=jacf, **OPTS)
+    p, pcov, info = levmar_lic(func, p0, y, (C, d), jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar_lic(func, p0, y, (C, d), **OPTS)
+    p, pcov, info = levmar_lic(func, p0, y, (C, d), **OPTS)
     assert_array_almost_equal(p, pt, decimal=3)
-    p, pcov, info = levmar.levmar_lic(func, p0, y, (C, d), cdiff=True, **OPTS)
+    p, pcov, info = levmar_lic(func, p0, y, (C, d), cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt)
 
 
@@ -703,8 +707,8 @@ def test_mods235():
     # Schittkowski (modified) problem 235 (box/linearly constrained)
     def func(p):
         y = np.empty(2)
-        y[0] = 0.1 * (p[0] - 1.0);
-        y[1] = p[1] - p[0]*p[0];
+        y[0] = 0.1 * (p[0] - 1.0)
+        y[1] = p[1] - p[0]*p[0]
         return y
 
     def jacf(p):
@@ -724,12 +728,12 @@ def test_mods235():
     b = np.asarray([-1.0, 0.0])
     bc = ((None, None), (0.1, 2.9), (0.7, None))
 
-    p, pcov, info = levmar.levmar_blec(func, p0, y, bc, (A, b),
+    p, pcov, info = levmar_blec(func, p0, y, bc, (A, b),
                                        jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar_blec(func, p0, y, bc, (A, b), **OPTS)
+    p, pcov, info = levmar_blec(func, p0, y, bc, (A, b), **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar_blec(func, p0, y, bc, (A, b),
+    p, pcov, info = levmar_blec(func, p0, y, bc, (A, b),
                                        cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt)
 
@@ -762,13 +766,13 @@ def test_modbt7():
     b = np.asarray([1.0, 0.0, 0.5])
     bc = [(None, 0.7), (None, None), (None, None), (None, None), (-0.3, None)]
 
-    p, pcov, info = levmar.levmar_blec(func, p0, y, bc, (A, b),
+    p, pcov, info = levmar_blec(func, p0, y, bc, (A, b),
                                        jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt)
-    p, pcov, info = levmar.levmar_blec(func, p0, y, bc, (A, b),
+    p, pcov, info = levmar_blec(func, p0, y, bc, (A, b),
                                        maxit=10000, **OPTS)
     assert_array_almost_equal(p, pt, decimal=3)
-    p, pcov, info = levmar.levmar_blec(func, p0, y, bc, (A, b),
+    p, pcov, info = levmar_blec(func, p0, y, bc, (A, b),
                                        maxit=10000, cdiff=True, **OPTS)
     assert_array_almost_equal(p, pt, decimal=4)
 
@@ -814,6 +818,6 @@ def test_modhs76():
     d = np.asarray([-5.0, -0.4])
     bc = [(0.0, None), (0.0, None), (0.0, None), (0.0, None)]
 
-    p, pcov, info = levmar.levmar_bleic(func, p0, y, bc, (A, b), (C, d),
-                                        jacf=jacf, **OPTS)
+    p, pcov, info = levmar_bleic(func, p0, y, bc, (A, b), (C, d),
+                                 jacf=jacf, **OPTS)
     assert_array_almost_equal(p, pt)

@@ -1,0 +1,48 @@
+{% set name = "levmar" %}
+{% set version = "0.3.0.git" %}
+{% set variant = "openblas" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  git_url: ../
+
+build:
+  number: 0
+  features:
+    - blas_{{ variant }}  # [not win]
+
+requirements:
+  build:
+    - blas 1.1 {{ variant }}  # [not win]
+    - openblas 0.2.18*  # [not win]
+    - python
+    - cython
+    - numpy
+  run:
+    - blas 1.1 {{ variant }}  # [not win]
+    - openblas 0.2.18*  # [not win]
+    - python
+    - numpy
+
+test:
+  imports:
+    - levmar
+  requires:
+      - pytest
+  commands:
+      - py.test --pyargs levmar
+
+about:
+  home: https://github.com/bjodah/{{ name }}
+  license: BSD 2-Clause
+  license_file: LICENSE.txt
+  summary: 'Python binding to the levmar library using Cython'
+  doc_url: https://bjodah.github.io/{{ name }}/latest
+
+
+extra:
+  recipe-maintainers:
+    - bjodah
