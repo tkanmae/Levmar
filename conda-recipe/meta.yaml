@@ -19,6 +19,7 @@ requirements:
     - blas 1.1 {{ variant }}  # [not win]
     - openblas 0.2.20*  # [not win]
     - python
+    - setuptools
     - cython
     - numpy
   run:
