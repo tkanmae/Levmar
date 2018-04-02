@@ -101,7 +101,7 @@ if not 10 < len(short_description) < 255:
 long_descr = io.open(_path_under_setup('README.rst'), encoding='utf-8').read()
 if not len(long_descr) > 100:
     warnings.warn("Long description from README.rst probably not read correctly.")
-_author, _author_email = open(_path_under_setup('AUTHORS'), 'rt').readline().split('<')
+_author, _author_email = io.open(_path_under_setup('AUTHORS'), 'rt', encoding='utf-8').readline().split('<')
 _author_email = _author_email.split('>')[0].strip() if '@' in _author_email else None
 
 setup_kwargs = dict(
