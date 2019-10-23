@@ -35,7 +35,7 @@ linear inequality constraints).
 Installation
 ------------
 Simplest way to install levmar and its dependencies is to use the
-`conda pacakge manager <https://conda.pydata.org/docs/>`_::
+`conda package manager <https://conda.pydata.org/docs/>`_::
 
    $ conda install -c bjodah levmar pytest
    $ python -m pytest --pyargs levmar  # runs the test-suite
