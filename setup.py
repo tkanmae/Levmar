@@ -122,6 +122,7 @@ setup_kwargs = dict(
     data_files=[('lib/site-packages/' + pkg_name, glob('libs/*.dll'))],
     # cmdclass = {'build_ext': build_ext},
     install_requires=['numpy', 'nose', 'icc_rt'],
+    extras_require={'docs': ['Sphinx', 'sphinx_rtd_theme', 'numpydoc']},
 )
 
 if __name__ == '__main__':
