@@ -6,13 +6,15 @@ import pprint
 import shutil
 import platform
 import warnings
-import numpy as np
 from glob import glob
 
-from distutils.core import setup
-from distutils.extension import Extension
+from setuptools import Extension, find_packages, setup
+
+from setuptools import dist
+dist.Distribution().fetch_build_eggs(['Cython>=0.15.1', 'numpy>=1.10'])
+
 from Cython.Build import cythonize
-from Cython.Distutils import build_ext
+import numpy as np
 
 
 pkg_name = 'levmar'
@@ -41,17 +43,15 @@ for k, v in list(env.items()):
 
 is_win = True if 'win' in platform.platform().lower() else False
 
-if not is_win:
-    libs = ['cbia.lib.blas.dyn.rel.x64.12', 'cbia.lib.lapack.dyn.rel.x64.12', 'msvcr120'] if is_win else []
-    package_data = ['libs/{}.dll'.format(f) for f in libs] if is_win else []
+if is_win:
+    libs = ['cbia.lib.blas.dyn.rel.x64.12', 'cbia.lib.lapack.dyn.rel.x64.12'] if is_win else []
 else:
     libs = [env[l] for l in ['LAPACK', 'BLAS'] if env[l]]
-    package_data = []
-
 
 extensions = Extension('%s._levmar' % pkg_name,
-                        [os.path.join('levmar', '_levmar.pyx')] + levmar_sources,
-                        libraries=libs,
+                       [os.path.join('levmar', '_levmar.pyx')] + levmar_sources,
+                       libraries=libs,
+                       library_dirs=['libs/'],
                        )
 
 ext_modules = cythonize(extensions)
@@ -120,7 +120,8 @@ setup_kwargs = dict(
     include_dirs=['levmar/levmar-2.6', np.get_include()],
     ext_modules=ext_modules,
     data_files=[('lib/site-packages/' + pkg_name, glob('libs/*.dll'))],
-    cmdclass = {'build_ext': build_ext},
+    # cmdclass = {'build_ext': build_ext},
+    install_requires=['numpy', 'nose', 'icc_rt'],
 )
 
 if __name__ == '__main__':
