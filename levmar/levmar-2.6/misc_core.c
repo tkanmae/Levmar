@@ -341,7 +341,7 @@ register int i, j;
 LM_REAL *a, *u, *s, *vt, *work;
 int a_sz, u_sz, s_sz, vt_sz, tot_sz;
 LM_REAL thresh, one_over_denom;
-int info, rank, worksz, *iwork, iworksz;
+int info, rank, worksz, iworksz;
    
   /* calculate required memory size */
   worksz=5*m; // min worksize for GESVD
