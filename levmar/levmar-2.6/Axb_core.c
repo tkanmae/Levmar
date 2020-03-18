@@ -863,7 +863,7 @@ LM_REAL *a, *u, *s, *vt, *work;
 int a_sz, u_sz, s_sz, vt_sz, tot_sz;
 LM_REAL thresh, one_over_denom;
 register LM_REAL sum;
-int info, rank, worksz, iworksz;
+int info, rank, worksz, *iwork, iworksz;
    
     if(!A)
 #ifdef LINSOLVERS_RETAIN_MEMORY
